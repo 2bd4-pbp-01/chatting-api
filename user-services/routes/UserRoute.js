@@ -4,17 +4,26 @@ import {
     getUserById,
     createUser,
     updateUser,
-    deleteUser
+    updatePassword,
+    deleteUser,
+    promoteToManager,
+    demoteToMember
 } from "../controllers/Users.js";
-import { operatorOnly } from "../middleware/AuthUser.js";
-import { verifyToken } from "../middleware/VerifyToken.js";
+import { verifyToken, verifyOperator } from "../middleware/VerifyToken.js";
 
 const router = express.Router();
 
-router.get('/users', verifyToken, operatorOnly, getUsers);
-router.get('/users/:id', verifyToken, operatorOnly, getUserById);
-router.post('/users', verifyToken, operatorOnly, createUser);
-router.patch('/users/:id', verifyToken, operatorOnly, updateUser);
-router.delete('/users/:id', verifyToken, operatorOnly, deleteUser);
+// CRUD
+router.get('/users', verifyToken, verifyOperator, getUsers);
+router.get('/users/:id', verifyToken, verifyOperator, getUserById);
+router.post('/users', verifyToken, verifyOperator, createUser);
+router.patch('/users/:id', verifyToken, verifyOperator, updateUser);
+router.patch('/users/:id/password', verifyToken, verifyOperator, updatePassword);
+router.delete('/users/:id', verifyToken, verifyOperator, deleteUser);
+
+// Promotion and Demotion (Optional)
+// Because you can actually update it in updateuser
+router.patch('/users/:id/promote', verifyToken, verifyOperator, promoteToManager);
+router.patch('/users/:id/demote', verifyToken, verifyOperator, demoteToMember);
 
 export default router;
