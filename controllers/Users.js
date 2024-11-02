@@ -1,6 +1,8 @@
 import User from "../models/UserModel.js";
 import argon2 from "argon2";
 
+
+
 // Otoritas dari admin untuk mendapatkan semua all user
 export const getUsers = async(req, res) =>{
     try {
