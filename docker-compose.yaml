@@ -1,0 +1,27 @@
+name: corpachat
+
+services:
+  database:
+    image: mysql:8.4
+    restart: always
+    env_file: ./user-services/.env
+    ports:
+      - 3306:3306
+    volumes:
+      - corpa-db:/var/lib/mysql
+
+  api-service:
+    restart: always
+    env_file: ./user-services/.env
+    ports:
+      - 3000:${APP_PORT:-3000}
+    build:
+      context: user-services
+      args:
+        - NODE_ENV=development
+        - APP_PORT=3000
+    depends_on:
+      - database
+
+volumes:
+  corpa-db:
