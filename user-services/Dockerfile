@@ -17,4 +17,4 @@ COPY --chown=node:node . .
 
 EXPOSE ${APP_PORT}
 
-CMD ["node", "index.js"]
+CMD ["node", "group.js"]

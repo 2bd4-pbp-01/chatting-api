@@ -1,0 +1,17 @@
+###
+
+POST http://localhost:3000/messages/groupId1
+Content-Type: application/json
+
+{
+  "senderId": "user222",
+  "text": "Hello, everyone!"
+}
+
+### get all messages from group
+
+GET http://localhost:3000/messages/groupId1
+
+### get all data
+
+GET http://localhost:3000/messages

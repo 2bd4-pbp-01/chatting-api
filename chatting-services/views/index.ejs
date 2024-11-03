@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime Group Chat</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1>Realtime Group Chat</h1>
+
+    <h2>Buat Grup</h2>
+    <form id="createGroupForm">
+        <div class="form-group">
+            <label for="groupId">Group ID:</label>
+            <input type="text" class="form-control" id="groupId" required>
+        </div>
+        <div class="form-group">
+            <label for="groupName">Group Name:</label>
+            <input type="text" class="form-control" id="groupName" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Buat Grup</button>
+    </form>
+
+    <hr>
+
+    <h2>Kirim Pesan</h2>
+    <form id="sendMessageForm">
+        <div class="form-group">
+            <label for="groupIdMessage">Group ID:</label>
+            <input type="text" class="form-control" id="groupIdMessage" required>
+        </div>
+        <div class="form-group">
+            <label for="senderId">Sender ID:</label>
+            <input type="text" class="form-control" id="senderId" required>
+        </div>
+        <div class="form-group">
+            <label for="messageText">Pesan:</label>
+            <textarea class="form-control" id="messageText" rows="3" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Kirim Pesan</button>
+    </form>
+
+    <hr>
+
+    <h2>Pesan dari Grup</h2>
+    <div id="messagesContainer"></div>
+</div>
+
+<script>
+    const API_BASE_URL = 'http://localhost:3000'; // Ganti dengan URL API Anda jika diperlukan
+
+    document.getElementById('createGroupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const groupId = document.getElementById('groupId').value;
+        const groupName = document.getElementById('groupName').value;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/groups`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({groupId, groupName}),
+            });
+            const data = await response.json();
+            // alert(data.message);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat membuat grup.');
+        }
+    });
+
+    document.getElementById('sendMessageForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const groupId = document.getElementById('groupIdMessage').value;
+        const senderId = document.getElementById('senderId').value;
+        const text = document.getElementById('messageText').value;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/messages/${groupId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({senderId, text}),
+            });
+            const data = await response.json();
+            // alert(data.message);
+            document.getElementById('messageText').value = ''; // Clear message input
+            fetchMessages(groupId); // Fetch messages after sending
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat mengirim pesan.');
+        }
+    });
+
+    async function fetchMessages(groupId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/messages/${groupId}`);
+            const messages = await response.json();
+            displayMessages(messages);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat mengambil pesan.');
+        }
+    }
+
+    function displayMessages(messages) {
+        const container = document.getElementById('messagesContainer');
+        container.innerHTML = ''; // Clear previous messages
+        messages.forEach(message => {
+            const div = document.createElement('div');
+            div.textContent = `${message.senderId}: ${message.text} (${new Date(message.timestamp).toLocaleString()})`;
+            container.appendChild(div);
+        });
+    }
+</script>
+</body>
+</html>
