@@ -87,15 +87,38 @@
                 body: JSON.stringify({senderId, text}),
             });
             const data = await response.json();
-            // alert(data.message);
-            document.getElementById('messageText').value = ''; // Clear message input
-            fetchMessages(groupId); // Fetch messages after sending
+            document.getElementById('messageText').value = ''; // Bersihkan input pesan
+            listenToMessages(groupId); // Memulai pemantauan real-time
         } catch (error) {
             console.error('Error:', error);
             alert('Terjadi kesalahan saat mengirim pesan.');
         }
     });
 
+    // Fungsi untuk memulai mendengarkan pesan secara real-time menggunakan Server-Sent Events (SSE)
+    function listenToMessages(groupId) {
+        const eventSource = new EventSource(`${API_BASE_URL}/listen/${groupId}`);
+
+        eventSource.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            displayNewMessage(message);
+        };
+
+        eventSource.onerror = (error) => {
+            console.error("EventSource error:", error);
+            eventSource.close(); // Menutup koneksi jika terjadi error
+        };
+    }
+
+    // Fungsi untuk menampilkan pesan baru di halaman
+    function displayNewMessage(message) {
+        const container = document.getElementById('messagesContainer');
+        const div = document.createElement('div');
+        div.textContent = `${message.senderId}: ${message.text} (${new Date(message.timestamp).toLocaleString()})`;
+        container.appendChild(div);
+    }
+
+    // Fungsi untuk mengambil semua pesan sebelumnya dari grup
     async function fetchMessages(groupId) {
         try {
             const response = await fetch(`${API_BASE_URL}/messages/${groupId}`);
@@ -109,7 +132,7 @@
 
     function displayMessages(messages) {
         const container = document.getElementById('messagesContainer');
-        container.innerHTML = ''; // Clear previous messages
+        container.innerHTML = ''; // Hapus pesan sebelumnya
         messages.forEach(message => {
             const div = document.createElement('div');
             div.textContent = `${message.senderId}: ${message.text} (${new Date(message.timestamp).toLocaleString()})`;

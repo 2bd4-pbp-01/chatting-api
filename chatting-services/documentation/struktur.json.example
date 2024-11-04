@@ -1,0 +1,31 @@
+{
+  "groups": {  // Kumpulan data grup chat
+    "<groupId>": {  // ID unik untuk setiap grup
+      "createdAt": <timestamp>,  // Waktu pembuatan grup dalam format timestamp
+      "groupName": "string",  // Nama grup chat
+      "messages": {  // Kumpulan pesan dalam grup tertentu
+        "<messageId>": {  // ID unik untuk setiap pesan
+          "senderId": "string",  // ID atau nama pengirim pesan
+          "text": "string",  // Konten teks dari pesan
+          "timestamp": <timestamp>  // Waktu pengiriman pesan dalam format timestamp
+        }
+      }
+    }
+  }
+}
+
+{
+  "groups": {  // Kumpulan data grup chat
+    "<groupId>": {  // ID unik untuk setiap grup
+      "createdAt": <timestamp>,  // Waktu pembuatan grup dalam format timestamp
+      "groupName": "string",  // Nama grup chat
+      "messages": {  // Kumpulan pesan dalam grup tertentu
+        "<messageId>": {  // ID unik untuk setiap pesan
+          "senderId": "string",  // ID atau nama pengirim pesan
+          "text": "string",  // Konten teks dari pesan
+          "timestamp": <timestamp>  // Waktu pengiriman pesan dalam format timestamp
+        }
+      }
+    }
+  }
+}

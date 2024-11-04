@@ -1,0 +1,15 @@
+{
+  "groups": {
+    "<groupId>": {
+      "createdAt": "timestamp",
+      "groupName": "string",
+      "messages": {
+        "<messageId>": {
+          "senderId": "string",
+          "text": "string",
+          "timestamp": "timestamp"
+        }
+      }
+    }
+  }
+}
