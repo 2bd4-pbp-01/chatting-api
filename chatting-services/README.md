@@ -13,10 +13,9 @@ Endpoint ini digunakan untuk membuat grup baru. Setiap grup memiliki `groupId` y
 
 ##### Parameters
 
-> | name      | type     | data type | description                     |
-> |-----------|----------|-----------|---------------------------------|
-> | groupId   | required | string    | Unique identifier for the group |
-> | groupName | required | string    | Name of the group               |
+> | name    | type     | data type | description |
+> |---------|----------|-----------|-------------|
+> | None    | N/A      | N/A       | N/A         |
 
 ##### Request
 
