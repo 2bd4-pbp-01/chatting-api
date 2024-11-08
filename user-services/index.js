@@ -21,15 +21,14 @@ const store = new sessionStore({
     await db.sync();
 })();
 
-app.use(session({
-    secret: process.env.SESS_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    store: store,
-    cookie: {
-        secure: 'auto'
-    }
-}));
+app.use(
+    session({
+      secret: process.env.SESS_SECRET || 'your-secret-key', // Ensure this is set to a strong, unique string
+      resave: false,              // Optional: set to false to avoid resaving unchanged sessions
+      saveUninitialized: true,    // Optional: set to true to save new sessions that are uninitialized
+      cookie: { secure: false }   // Set to true if you are using HTTPS
+    })
+  );
 
 app.use(cors({
     credentials: true,
