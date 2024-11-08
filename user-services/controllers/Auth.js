@@ -2,6 +2,7 @@ import User from "../models/UserModel.js";
 import jwt from 'jsonwebtoken';
 import argon2 from "argon2";
 import { jwtConfig } from "../config/jwt.js";
+import response from "../util/corparesponse.js";    
 
 // Login 
 export const Login = async (req, res) =>{
@@ -24,9 +25,7 @@ export const Login = async (req, res) =>{
         }, jwtConfig.secret, {
             expiresIn: jwtConfig.expiration
         });
-
-        res.status(200).json({
-            msg: "Login berhasil",
+        data = {
             token: token,
             user: {
                 id: user.id_users,
@@ -34,7 +33,19 @@ export const Login = async (req, res) =>{
                 email: user.email,
                 tipe_user: user.tipe_user
             }
-        });
+            
+        }
+        response(200, data, "Login Berhasil", res);
+        // res.status(200).json({
+        //     msg: "Login berhasil",
+        //     token: token,
+        //     user: {
+        //         id: user.id_users,
+        //         username: user.username,
+        //         email: user.email,
+        //         tipe_user: user.tipe_user
+        //     }
+        // });
     } catch (error) {
         res.status(500).json({msg: error.message});
     }
@@ -83,18 +94,13 @@ export const logOut = (req, res) =>{
 //     }
 // }
 
-export const register = async(req, res) =>{
-    const {username, email, password, confPassword} = req.body;
-    if(password !== confPassword) return res.status(400).json({msg: "Password dan Confirm Password tidak cocok"});
-    
+export const register = async (req, res) => {
+    const { username, email, password, confPassword } = req.body;
+    if (password !== confPassword) return res.status(400).json({ msg: "Password dan Confirm Password tidak cocok" });
+
     try {
-        // Check if email already exists
-        const existingUser = await User.findOne({
-            where: { email: email }
-        });
-        if(existingUser) {
-            return res.status(400).json({msg: "Email sudah terdaftar"});
-        }
+        const existingUser = await User.findOne({ where: { email: email } });
+        if (existingUser) return res.status(400).json({ msg: "Email sudah terdaftar" });
 
         const hashPassword = await argon2.hash(password);
         const user = await User.create({
@@ -104,7 +110,6 @@ export const register = async(req, res) =>{
             tipe_user: "anggota"
         });
 
-        // Create JWT token
         const token = jwt.sign({
             id: user.id_users,
             email: user.email,
@@ -113,11 +118,13 @@ export const register = async(req, res) =>{
             expiresIn: jwtConfig.expiration
         });
 
-        res.status(201).json({
-            msg: "Register Berhasil",
-            token: token
-        });
+        const data = {
+            token: token,
+        }
+        
+        response(201, data, "Register Berhasil", res);
+
     } catch (error) {
-        res.status(400).json({msg: error.message});
+        res.status(400).json({ msg: error.message });
     }
-}
+};
