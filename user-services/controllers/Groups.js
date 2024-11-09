@@ -1,5 +1,7 @@
 import { Op } from "sequelize";
 import Groups from "../models/GroupModel.js";
+import Users from "../models/UserModel.js";
+import Association from "../models/AssociationModel.js";
 
 export const getGroups = async (_req, res) => {
   try {
@@ -18,6 +20,15 @@ export const getGroupsById = async (req, res) => {
       where: {
         [Op.or]: [{ id_group: Number(id) }, { name }],
       },
+      include: [
+        {
+          model: Users,
+          attributes: ["id_users", "username", "tipe_user"],
+          through: {
+            attributes: [],
+          },
+        },
+      ],
     });
 
     group
@@ -119,6 +130,81 @@ export const deleteGroup = async (req, res) => {
   }
 };
 
-// /groups [GET, POST-Create]
-// /groups/:id [GET, PUT, DELETE]
-// /groups/:id/addUser [POST, DELETE]
+export const addMembers = async (req, res) => {
+  const { groupId: id_group } = req.params;
+  const { userId: id_users } = req.body;
+
+  try {
+    const group = await Groups.findByPk(id_group);
+    const account = await Users.findByPk(id_users);
+
+    console.log("find", group, account);
+
+    if (group && account) {
+      const [memberList, created] = await Association.findOrCreate({
+        where: {
+          id_group,
+          id_users: account.id_users,
+        },
+        defaults: {
+          id_group,
+          id_users: account.id_users,
+        },
+      });
+
+      created
+        ? res.status(200).json({
+            msg: `Berhasil menambahkan user id '${memberList.id_users}' ke group.`,
+          })
+        : res.status(409).json({
+            msg: `User id '${memberList.id_users}' sudah ada didalam group.`,
+          });
+    } else {
+      res.status(404).json({ msg: "Grup/user tidak ditemukan." });
+    }
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
+};
+
+export const kickMembers = async (req, res) => {
+  const { groupId: id_group, userId: id_users } = req.params;
+
+  try {
+    const group = await Groups.findOne({
+      where: { id_group },
+    });
+    const user = await Users.findOne({
+      where: { id_users },
+    });
+
+    if (group && user) {
+      const memberList = await Association.findOne({
+        where: {
+          id_group: group.id_group,
+          id_users: user.id_users,
+        },
+      });
+
+      if (memberList) {
+        await Association.destroy({
+          where: {
+            id_association: memberList.id_association,
+          },
+        });
+
+        res.status(200).json({
+          msg: `Berhasil mengeluarkan user id '${memberList.id_users}' dari group.`,
+        });
+      } else {
+        res.status(409).json({
+          msg: `User id: '${id_users}' tidak ada didalam group.`,
+        });
+      }
+    } else {
+      res.status(404).json({ msg: "Grup/user tidak ditemukan." });
+    }
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
+};
