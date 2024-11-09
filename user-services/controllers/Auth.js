@@ -25,15 +25,8 @@ export const Login = async (req, res) =>{
         }, jwtConfig.secret, {
             expiresIn: jwtConfig.expiration
         });
-        data = {
+        const data = {
             token: token,
-            user: {
-                id: user.id_users,
-                username: user.username,
-                email: user.email,
-                tipe_user: user.tipe_user
-            }
-            
         }
         response(200, data, "Login Berhasil", res);
         // res.status(200).json({
@@ -61,9 +54,7 @@ export const getMe = async (req, res) =>{
             }
         });
         if(!user) return res.status(404).json({msg: "User tidak ditemukan"});
-        res.status(200).json({
-            user: user
-        });
+        response(200, user, "User Ditemukan", res);
     } catch (error) {
         res.status(500).json({msg: error.message});
     }
@@ -76,23 +67,6 @@ export const logOut = (req, res) =>{
     });
 }
 
-//REGISTER
-// export const register = async(req, res) =>{
-//     const {username, email, password, confPassword, tipe_user} = req.body;
-//     if(password !== confPassword) return res.status(400).json({msg: "Password dan Confirm Password tidak cocok"});
-//     const hashPassword = await argon2.hash(password);
-//     try {
-//         await User.create({
-//             username: username,
-//             email: email,
-//             password: hashPassword,
-//             tipe_user: tipe_user
-//         });
-//         res.status(201).json({msg: "Register Berhasil"});
-//     } catch (error) {
-//         res.status(400).json({msg: error.message});
-//     }
-// }
 
 export const register = async (req, res) => {
     const { username, email, password, confPassword } = req.body;
@@ -121,7 +95,7 @@ export const register = async (req, res) => {
         const data = {
             token: token,
         }
-        
+
         response(201, data, "Register Berhasil", res);
 
     } catch (error) {

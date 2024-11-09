@@ -1,5 +1,6 @@
 import User from "../models/UserModel.js";
 import argon2 from "argon2";
+import responses from "../util/corparesponse.js";    
 
 // Get semua user (kecuali operator)
 export const getUsers = async(req, res) =>{
@@ -10,7 +11,7 @@ export const getUsers = async(req, res) =>{
                 tipe_user: ['anggota', 'manager'] // Hanya ambil anggota dan manager
             }
         });
-        res.status(200).json(response);
+        responses(200, response, "Semua data users berhasil diambil", res);
     } catch (error) {
         res.status(500).json({msg: error.message});
     }
@@ -31,8 +32,7 @@ export const getUserById = async(req, res) =>{
         if(response.tipe_user === 'operator') {
             return res.status(403).json({msg: "Tidak dapat mengakses data operator"});
         }
-        
-        res.status(200).json(response);
+        responses(200, response, "Data user berhasil diambil", res);
     } catch (error) {
         res.status(500).json({msg: error.message});
     }
@@ -53,13 +53,22 @@ export const createUser = async(req, res) =>{
         }
 
         const hashPassword = await argon2.hash(password);
-        await User.create({
+        const newUser = await User.create({
             username: username,
             email: email,
             password: hashPassword,
             tipe_user: "anggota" // Operator hanya bisa membuat anggota
         });
-        res.status(201).json({msg: "Register Berhasil"});
+
+        const userData = {
+            id: newUser.id_users,
+            username: newUser.username,
+            email: newUser.email,
+            tipe_user: newUser.tipe_user
+        };
+
+        // res.status(201).json({msg: "Register Berhasil"});
+        responses(201, userData, "User telah berhasil dibuat", res);
     } catch (error) {
         res.status(400).json({msg: error.message});
     }
@@ -87,17 +96,31 @@ export const updateUser = async(req, res) =>{
             return res.status(400).json({msg: "Tipe user tidak valid. Hanya bisa set sebagai anggota atau manager"});
         }
 
-        // Update tanpa mengubah password
-        await User.update({
+         // Update tanpa mengubah password
+         await User.update({
             username: username,
             email: email,
             tipe_user: tipe_user
-        },{
-            where:{
+        }, {
+            where: {
                 id_users: user.id_users
             }
         });
-        res.status(200).json({msg: "User Updated"});
+        
+        // Fetch the updated user data
+        const updatedUser = await User.findOne({
+            where: {
+                id_users: req.params.id
+            }
+        });
+
+        const userData = {
+            id: updatedUser.id_users,
+            username: updatedUser.username,
+            email: updatedUser.email,
+            tipe_user: updatedUser.tipe_user
+        };
+        responses(200, userData, "User Updated", res);
     } catch (error) {
         res.status(400).json({msg: error.message});
     }
@@ -131,7 +154,20 @@ export const updatePassword = async(req, res) =>{
                 id_users: user.id_users
             }
         });
-        res.status(200).json({msg: "Password Updated"});
+        
+        // Fetch the updated user data
+        const updatedUser = await User.findOne({
+            where: {
+                id_users: req.params.id
+            }
+        });
+
+        const userData = {
+            id: updatedUser.id_users,
+            username: updatedUser.username,
+            email: updatedUser.email,
+        };
+        responses(200, userData, "Password Updated", res);
     } catch (error) {
         res.status(400).json({msg: error.message});
     }
@@ -157,7 +193,15 @@ export const deleteUser = async(req, res) =>{
                 id_users: user.id_users
             }
         });
-        res.status(200).json({msg: "User Deleted"});
+
+        const userData = {
+            id: user.id_users,
+            username: user.username,
+            email: user.email,
+            tipe_user: user.tipe_user
+        };
+        
+        responses(200, userData, "User Deleted", res);
     } catch (error) {
         res.status(400).json({msg: error.message});
     }
@@ -185,6 +229,7 @@ export const promoteToManager = async(req, res) =>{
                 id_users: user.id_users
             }
         });
+        
         res.status(200).json({msg: "User berhasil dipromosikan menjadi manager"});
     } catch (error) {
         res.status(400).json({msg: error.message});
