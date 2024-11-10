@@ -1,5 +1,6 @@
 import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
+import Department from "./DepartmentModel.js";
 
 const {DataTypes} = Sequelize;
 
@@ -39,21 +40,21 @@ const Users = db.define('users',{
             notEmpty: true,
             isIn: [['anggota', 'manager', 'operator']]
         }
-    }
+    },
 },{
     freezeTableName: true,
     timestamps: false
 });
 
-// // Define the relationship
-// Users.belongsTo(Department, {
-//     foreignKey: 'id_department',
-//     onDelete: 'CASCADE',
-//     onUpdate: 'CASCADE'
-// });
+// Define the relationship
+Users.belongsTo(Department, {
+    foreignKey: 'id_department',
+    onDelete: 'NO ACTION',
+    onUpdate: 'CASCADE'
+});
 
-// Department.hasMany(Users, {
-//     foreignKey: 'id_department'
-// });
+Department.hasMany(Users, {
+    foreignKey: 'id_department'
+});
 
 export default Users;
