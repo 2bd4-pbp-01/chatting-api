@@ -1,11 +1,12 @@
 const express = require('express');
-const { admin } = require('../services/firebaseService');
+const { admin } = require('../config/firebaseService');
+const responseCorpa = require('../util/corparesponse');
 
 const router = express.Router();
 
 // Mengirim pesan ke grup
-router.post('/:groupId', async (req, res) => {
-    const { groupId } = req.params;
+router.post('/:groupName', async (req, res) => {
+    const { groupName } = req.params;
     const { senderId, text } = req.body;
 
     try {
@@ -15,9 +16,9 @@ router.post('/:groupId', async (req, res) => {
             timestamp: admin.database.ServerValue.TIMESTAMP,
         };
 
-        await admin.database().ref(`groups/${groupId}/messages`).push(messageData);
+        await admin.database().ref(`groups/${groupName}/messages`).push(messageData);
 
-        res.status(201).send({ message: 'Message berhasil ditambahkan' });
+        responseCorpa(201, null, 'Message berhasil ditambahkan', res);
     } catch (error) {
         console.error("Error Input pesan:", error);
         res.status(500).send({ error: error.message });
@@ -25,11 +26,11 @@ router.post('/:groupId', async (req, res) => {
 });
 
 // Mengambil pesan dari grup
-router.get('/:groupId', async (req, res) => {
-    const { groupId } = req.params;
+router.get('/:groupName', async (req, res) => {
+    const { groupName } = req.params;
 
     try {
-        const messagesSnapshot = await admin.database().ref(`groups/${groupId}/messages`).once('value');
+        const messagesSnapshot = await admin.database().ref(`groups/${groupName}/messages`).once('value');
         const messagesData = messagesSnapshot.val();
 
         // Konversi pesan ke dalam bentuk array dengan menambahkan ID
@@ -40,7 +41,7 @@ router.get('/:groupId', async (req, res) => {
             }))
             : [];
 
-        res.status(200).send(messagesArray);
+        responseCorpa(200, messagesArray, 'Pesan berhasil diambil', res);
     } catch (error) {
         console.error("Error mengambil pesan:", error);
         res.status(500).send({ error: error.message });
@@ -59,8 +60,8 @@ router.get('/', async (req, res) => {
         }
 
         // Memproses setiap grup dan pesan-pesan di dalamnya
-        const groupsArray = Object.keys(groupsData).map(groupId => {
-            const group = groupsData[groupId];
+        const groupsArray = Object.keys(groupsData).map(groupName => {
+            const group = groupsData[groupName];
 
             // Mengonversi pesan ke array
             const messagesArray = group.messages
@@ -71,24 +72,24 @@ router.get('/', async (req, res) => {
                 : [];
 
             return {
-                groupId: groupId,
-                groupName: group.groupName,
+                groupName: groupName,
                 createdAt: group.createdAt,
                 messages: messagesArray
             };
         });
 
-        // Mengirim seluruh data grup dalam bentuk array
-        res.status(200).send(groupsArray);
+        responseCorpa(200, groupsArray, 'Data grup dan pesan berhasil diambil', res);
+
     } catch (error) {
         console.error("Error mengambil semua data grup dan pesan:", error);
         res.status(500).send({ error: error.message });
     }
 });
 
-router.get('/listen/:groupId', (req, res) => {
-    const { groupId } = req.params;
-    const messagesRef = admin.database().ref(`groups/${groupId}/messages`);
+// Mendengarkan pesan baru di grup
+router.get('/listen/:groupName', (req, res) => {
+    const { groupName } = req.params;
+    const messagesRef = admin.database().ref(`groups/${groupName}/messages`);
 
     // Menetapkan header untuk SSE
     res.setHeader('Content-Type', 'text/event-stream');
@@ -107,7 +108,5 @@ router.get('/listen/:groupId', (req, res) => {
         messagesRef.off('child_added'); // Hentikan pendengar ketika koneksi ditutup
     });
 });
-
-
 
 module.exports = router;

@@ -2,6 +2,7 @@ import { Op } from "sequelize";
 import Groups from "../models/GroupModel.js";
 import Users from "../models/UserModel.js";
 import Association from "../models/AssociationModel.js";
+import amqp from "amqplib";
 
 export const getGroups = async (_req, res) => {
   try {
@@ -50,13 +51,37 @@ export const createGroup = async (req, res) => {
       },
     });
 
-    created
-      ? res.status(201).json({
-          msg: `Group ${group.name} berhasil dibuat.`,
-        })
-      : res.status(409).json({
-          msg: `Grup ${group.name} dengan id ${group.id_group} sudah ada.`,
-        });
+    if (created) {
+      res.status(201).json({
+        msg: `Group ${group.name} berhasil dibuat.`,
+      });
+      console.log("Group created:", group);
+        // Setup RabbitMQ untuk mengirim pesan
+      try {
+        const connection = await amqp.connect("amqp://ambatusing:ambatubash@127.0.0.1:5672");
+        const channel = await connection.createChannel();
+        const queue = "group_created_queue";
+
+        await channel.assertQueue(queue, { durable: false });
+
+        // Kirim pesan
+        await channel.sendToQueue(
+            queue,
+            Buffer.from(JSON.stringify({ groupId: group.id_group, groupName: group.name }))
+        );
+        console.log("Message sent to queue:", queue);
+
+        // Close channel and connection
+        await channel.close();
+        await connection.close();
+      } catch (err) {
+        console.error("Failed to send message to RabbitMQ:", err);
+      }
+    } else {
+      res.status(409).json({
+        msg: `Grup ${group.name} dengan id ${group.id_group} sudah ada.`,
+      });
+    }
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }

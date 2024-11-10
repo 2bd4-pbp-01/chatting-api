@@ -35,7 +35,7 @@ Endpoint ini digunakan untuk membuat grup baru. Setiap grup memiliki `groupId` y
 
 ##### Example cURL
 ```bash
-curl -X POST http://localhost:3000/groups -d '{"groupId":"1","groupName":"Group 1"}' -H "Content-Type: application/json"
+curl -X POST http://localhost:3000/groups -d '{"groupId":"1","groupName":"dev"}' -H "Content-Type: application/json"
 ```
 
 </details>

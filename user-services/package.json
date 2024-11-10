@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "amqplib": "^0.10.4",
     "argon2": "^0.28.7",
     "backend": "file:",
     "connect-session-sequelize": "^7.1.4",
