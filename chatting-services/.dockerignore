@@ -1,0 +1,26 @@
+# code iditor/IDE related
+.idea/
+.vscode/
+
+# version control related
+.git/
+.gitignore
+
+# docker related
+Dockerfile
+.dockerignore
+
+# testing tools related
+request.rest
+
+# app related
+README*.md
+LICENSE
+
+node_modules/
+npm-debug.log
+
+.env.example
+servicesAccountKey.example.json
+
+documentation/

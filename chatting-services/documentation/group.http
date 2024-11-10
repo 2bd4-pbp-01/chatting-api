@@ -2,13 +2,14 @@ POST http://localhost:3000/groups
 Content-Type: application/json
 
 {
-  "groupId": "groupId2",
-  "groupName": "manager Team"
+  "groupName": "ambatubash team"
 }
 
 ###
 
-
+GET http://localhost:3000/groups
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTIsImVtYWlsIjoiRmVtYm95MTIzMzQ1Njc4OTEwMTExMjIyZ2F5QGdtYWlsLmNvbSIsInRpcGVfdXNlciI6Im9wZXJhdG9yIiwiaWF0IjoxNzMxMDUyODM1LCJleHAiOjE3MzExMzkyMzV9.kpQRD4Fs4gxuKs3oHIIiPLJ4NLMlZEEz41NoeAxy1iM
 
 ###
 

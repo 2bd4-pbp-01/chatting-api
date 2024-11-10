@@ -10,6 +10,16 @@ services:
     volumes:
       - corpa-db:/var/lib/mysql
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ambatusing
+      RABBITMQ_DEFAULT_PASS: ambatubash
+
   api-service:
     restart: always
     env_file: ./user-services/.env
@@ -22,6 +32,20 @@ services:
         - APP_PORT=3000
     depends_on:
       - database
+      - rabbitmq
+
+  chat-service:
+    restart: always
+    env_file: ./chatting-services/.env
+    ports:
+      - 3001:${CHAT_APP_PORT:-3001}
+    build:
+        context: chatting-services
+        args:
+            - NODE_ENV=development
+            - APP_PORT=3001
+    depends_on:
+        - rabbitmq
 
 volumes:
   corpa-db:
