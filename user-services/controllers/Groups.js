@@ -57,12 +57,12 @@ export const createGroup = async (req, res) => {
         msg: `Group ${group.name} berhasil dibuat.`,
       });
       console.log("Group created:", group);
-        // Setup RabbitMQ untuk mengirim pesan
-        await sendRabbitMQMessage("group_queue", {
-            operation: "create",
-            groupId: group.id_group,
-            groupName: group.name,
-        })
+      // Setup RabbitMQ untuk mengirim pesan
+      await sendRabbitMQMessage("group_queue", {
+        operation: "create",
+        groupId: group.id_group,
+        groupName: group.name,
+      });
     } else {
       res.status(409).json({
         msg: `Grup ${group.name} dengan id ${group.id_group} sudah ada.`,
@@ -75,9 +75,9 @@ export const createGroup = async (req, res) => {
 
 export const updateGroup = async (req, res) => {
   const { groupId: id } = req.params;
-  const { groupName: name = "", newName } = req.body;
+  const { newName } = req.body;
 
-  if (!name || !newName) {
+  if (!newName) {
     res
       .status(400)
       .json({ msg: "Informasi untuk mengubah group tidak terpenuhi." });
@@ -98,7 +98,7 @@ export const updateGroup = async (req, res) => {
 
     const newGroup = await Groups.findOne({
       where: {
-        [Op.or]: [{ id_group: id }, { name }],
+        id_group: id,
       },
     });
 
@@ -109,11 +109,11 @@ export const updateGroup = async (req, res) => {
       );
 
       // Setup RabbitMQ untuk mengirim pesan
-        await sendRabbitMQMessage("group_queue", {
-            operation: "update",
-            groupId: newGroup.id_group,
-            groupName: newName,
-        });
+      await sendRabbitMQMessage("group_queue", {
+        operation: "update",
+        groupId: newGroup.id_group,
+        groupName: newName,
+      });
 
       res.status(200).json({ msg: "Group berhasil diubah." });
     } else {
@@ -142,11 +142,11 @@ export const deleteGroup = async (req, res) => {
       });
 
       // Setup RabbitMQ untuk mengirim pesan
-        await sendRabbitMQMessage("group_queue", {
-            operation: "delete",
-            groupId: group.id_group,
-            groupName: group.name,
-        });
+      await sendRabbitMQMessage("group_queue", {
+        operation: "delete",
+        groupId: group.id_group,
+        groupName: group.name,
+      });
 
       res.status(200).json({ msg: "Group berhasil dihapus." });
     } else {
