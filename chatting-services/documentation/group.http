@@ -2,11 +2,25 @@ POST http://localhost:3000/groups
 Content-Type: application/json
 
 {
-  "groupName": "ambatubash team"
+  "groupName": "ambatubashss team"
 }
 
 ###
+PUT http://localhost:3000/groups/4
+Content-Type: application/json
 
+{
+  "groupName": "ambatubash team",
+  "newName": "aku izin keluarrrrr"
+}
+
+
+
+###
+DELETE http://localhost:3000/groups/3
+Content-Type: application/json
+
+###
 GET http://localhost:3000/groups
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTIsImVtYWlsIjoiRmVtYm95MTIzMzQ1Njc4OTEwMTExMjIyZ2F5QGdtYWlsLmNvbSIsInRpcGVfdXNlciI6Im9wZXJhdG9yIiwiaWF0IjoxNzMxMDUyODM1LCJleHAiOjE3MzExMzkyMzV9.kpQRD4Fs4gxuKs3oHIIiPLJ4NLMlZEEz41NoeAxy1iM

@@ -3,6 +3,7 @@ import Groups from "../models/GroupModel.js";
 import Users from "../models/UserModel.js";
 import Association from "../models/AssociationModel.js";
 import amqp from "amqplib";
+import sendRabbitMQMessage from "../util/RabbitMQMessage.js";
 
 export const getGroups = async (_req, res) => {
   try {
@@ -57,26 +58,11 @@ export const createGroup = async (req, res) => {
       });
       console.log("Group created:", group);
         // Setup RabbitMQ untuk mengirim pesan
-      try {
-        const connection = await amqp.connect("amqp://ambatusing:ambatubash@127.0.0.1:5672");
-        const channel = await connection.createChannel();
-        const queue = "group_created_queue";
-
-        await channel.assertQueue(queue, { durable: false });
-
-        // Kirim pesan
-        await channel.sendToQueue(
-            queue,
-            Buffer.from(JSON.stringify({ groupId: group.id_group, groupName: group.name }))
-        );
-        console.log("Message sent to queue:", queue);
-
-        // Close channel and connection
-        await channel.close();
-        await connection.close();
-      } catch (err) {
-        console.error("Failed to send message to RabbitMQ:", err);
-      }
+        await sendRabbitMQMessage("group_queue", {
+            operation: "create",
+            groupId: group.id_group,
+            groupName: group.name,
+        })
     } else {
       res.status(409).json({
         msg: `Grup ${group.name} dengan id ${group.id_group} sudah ada.`,
@@ -121,6 +107,14 @@ export const updateGroup = async (req, res) => {
         { name: newName },
         { where: { id_group: newGroup.id_group } },
       );
+
+      // Setup RabbitMQ untuk mengirim pesan
+        await sendRabbitMQMessage("group_queue", {
+            operation: "update",
+            groupId: newGroup.id_group,
+            groupName: newName,
+        });
+
       res.status(200).json({ msg: "Group berhasil diubah." });
     } else {
       res.status(400).json({ msg: "Group tidak ditemukan." });
@@ -146,6 +140,14 @@ export const deleteGroup = async (req, res) => {
           [Op.or]: [{ id_group: group.id_group }, { name: group.name }],
         },
       });
+
+      // Setup RabbitMQ untuk mengirim pesan
+        await sendRabbitMQMessage("group_queue", {
+            operation: "delete",
+            groupId: group.id_group,
+            groupName: group.name,
+        });
+
       res.status(200).json({ msg: "Group berhasil dihapus." });
     } else {
       res.status(404).json({ msg: "Grup tidak ditemukan." });
