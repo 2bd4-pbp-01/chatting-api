@@ -6,35 +6,55 @@ const amqp = require('amqplib');
 const router = express.Router();
 
 // Function to process received messages and save them to Firebase
-const processGroupCreatedMessage = (msg) => {
-    const { groupId, groupName } = JSON.parse(msg.content.toString());
+// Fungsi untuk memproses pesan sesuai dengan operasi (insert, update, delete)
+const processGroupMessage = async (msg) => {
+    const { operation, groupId, groupName } = JSON.parse(msg.content.toString());
+    const groupRef = admin.database().ref('groups/' + groupName);
 
-    // Use groupName as the key and store groupId for reference
-    admin.database().ref('groups/' + groupName).set({
-        groupId,  // Save groupId as a reference if needed
-        createdAt: admin.database.ServerValue.TIMESTAMP,
-    })
-        .then(() => {
-            console.log('Group successfully created in Firebase');
-        })
-        .catch((error) => {
-            console.error('Error creating group in Firebase:', error);
-        });
+    try {
+        switch (operation) {
+            case "create":
+                await groupRef.set({
+                    groupId,
+                    createdAt: admin.database.ServerValue.TIMESTAMP,
+                });
+                console.log(`Group '${groupName}' berhasil dibuat di Firebase`);
+                break;
+
+            case "update":
+                await groupRef.update({
+                    groupName,
+                    updatedAt: admin.database.ServerValue.TIMESTAMP,
+                });
+                console.log(`Group '${groupName}' berhasil diperbarui di Firebase`);
+                break;
+
+            case "delete":
+                await groupRef.remove();
+                console.log(`Group '${groupName}' berhasil dihapus dari Firebase`);
+                break;
+
+            default:
+                console.error("Operasi tidak dikenali:", operation);
+        }
+    } catch (error) {
+        console.error(`Gagal memproses operasi ${operation} untuk group '${groupName}':`, error);
+    }
 };
 
-// Setup RabbitMQ for listening to messages
+// Setup RabbitMQ listener
 const setupRabbitMQListener = async () => {
     try {
         const connection = await amqp.connect('amqp://ambatusing:ambatubash@127.0.0.1:5672');
         const channel = await connection.createChannel();
-        const queue = 'group_created_queue';
+        const queue = 'group_queue';
 
         await channel.assertQueue(queue, { durable: false });
 
         // Listen to messages
         channel.consume(queue, (msg) => {
             if (msg !== null) {
-                processGroupCreatedMessage(msg);
+                processGroupMessage(msg);
                 channel.ack(msg); // Acknowledge message after processing
             }
         });
@@ -44,8 +64,8 @@ const setupRabbitMQListener = async () => {
     }
 };
 
-// Call setupRabbitMQListener to start listening
-setupRabbitMQListener().then(r => console.log('RabbitMQ listener started'));
+// Memulai RabbitMQ listener
+setupRabbitMQListener().then(() => console.log('RabbitMQ listener started'));
 
 // Endpoint to retrieve groups from Firebase
 router.get('/', async (req, res) => {
