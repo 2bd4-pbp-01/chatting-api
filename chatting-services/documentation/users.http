@@ -1,29 +1,26 @@
-POST http://localhost:3000/groups
+### GET request to example server
+POST http://localhost:3000/register
 Content-Type: application/json
 
 {
-  "groupName": "ambatubashss team"
+    "username": "Fajri123",
+    "email": "Femboy123345678910111222gay@gmail.com",
+    "password": "AkuGarut123",
+    "confPassword":"AkuGarut123"
 }
-
 ###
-PUT http://localhost:3000/groups/4
+POST http://localhost:3000/login
 Content-Type: application/json
 
 {
-  "groupName": "ambatubash team",
-  "newName": "aku izin keluarrrrr"
+  "email": "Femboy123345678910111222gay@gmail.com",
+  "password": "AkuGarut123"
 }
 
-
-
 ###
-DELETE http://localhost:3000/groups/3
-Content-Type: application/json
 
-###
-GET http://localhost:3000/groups
+GET http://localhost:3000/users
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTIsImVtYWlsIjoiRmVtYm95MTIzMzQ1Njc4OTEwMTExMjIyZ2F5QGdtYWlsLmNvbSIsInRpcGVfdXNlciI6Im9wZXJhdG9yIiwiaWF0IjoxNzMxMDUyODM1LCJleHAiOjE3MzExMzkyMzV9.kpQRD4Fs4gxuKs3oHIIiPLJ4NLMlZEEz41NoeAxy1iM
 
 ###
-

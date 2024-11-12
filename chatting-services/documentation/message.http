@@ -1,11 +1,11 @@
 ###
 
-POST http://localhost:3000/messages/groupId1
+POST http://localhost:3001/messages/ambatubash team
 Content-Type: application/json
 
 {
   "senderId": "user222",
-  "text": "Bangkonggggg"
+  "text": "usangggg"
 }
 
 ### get all messages from group

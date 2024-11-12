@@ -8,19 +8,24 @@ import {
   addMembers,
   kickMembers,
 } from "../controllers/Groups.js";
-import { verifyToken, verifyOperator } from "../middleware/VerifyToken.js";
+import { verifyToken, verifyManager } from "../middleware/VerifyToken.js";
 
 const router = express.Router();
 
 // CRUD group
-router.get("/groups", getGroups);
-router.post("/groups", createGroup);
-router.get("/groups/:groupId", getGroupsById);
-router.put("/groups/:groupId", updateGroup);
-router.delete("/groups/:groupId", deleteGroup);
+router.get("/groups", verifyToken, verifyManager, getGroups);
+router.post("/groups", verifyToken, verifyManager, createGroup);
+router.get("/groups/:groupId", verifyToken, verifyManager, getGroupsById);
+router.put("/groups/:groupId", verifyToken, verifyManager, updateGroup);
+router.delete("/groups/:groupId", verifyToken, verifyManager, deleteGroup);
 
 // invite/kick members
-router.post("/groups/:groupId/invite", addMembers);
-router.delete("/groups/:groupId/kick/:userId", kickMembers);
+router.post("/groups/:groupId/invite", verifyToken, verifyManager, addMembers);
+router.delete(
+  "/groups/:groupId/kick/:userId",
+  verifyToken,
+  verifyManager,
+  kickMembers,
+);
 
 export default router;
