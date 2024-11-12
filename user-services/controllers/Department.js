@@ -1,16 +1,18 @@
 import Department from "../models/DepartmentModel.js";
 import Users from "../models/UserModel.js";
+import response from "../util/corparesponse.js"; 
+import { Sequelize } from "sequelize";
 
 // Get semua department (hanya operator)
 export const getDepartments = async(req, res) =>{
     try {
-        const response = await Department.findAll({
+        const departments = await Department.findAll({
             include: [{
                 model: Users,
                 attributes: ['username', 'email', 'tipe_user']
             }]
         });
-        res.status(200).json(response);
+        response(200, departments, "Semua department berhasil diambil", res);
     } catch (error) {
         res.status(500).json({msg: error.message});
     }
@@ -19,7 +21,7 @@ export const getDepartments = async(req, res) =>{
 // Get department by ID (hanya operator)
 export const getDepartmentById = async(req, res) =>{
     try {
-        const response = await Department.findOne({
+        const department = await Department.findOne({
             where: {
                 id_department: req.params.id
             },
@@ -28,10 +30,17 @@ export const getDepartmentById = async(req, res) =>{
                 attributes: ['username', 'email', 'tipe_user']
             }]
         });
-        if(!response) return res.status(404).json({msg: "Department tidak ditemukan"});
-        res.status(200).json(response);
+        if(!department) return response(404, null, "Department tidak ditemukan", res);
+
+        const responseData = {
+            id_department: department.id_department,
+            nama_department: department.nama_department,
+            users: department.users
+        };
+
+        response(200, responseData, "Department berhasil diambil", res);
     } catch (error) {
-        res.status(500).json({msg: error.message});
+        response(500, null, error.message, res);
     }
 }
 
@@ -49,10 +58,16 @@ export const createDepartment = async(req, res) =>{
             return res.status(400).json({msg: "Nama department sudah ada"});
         }
         
-        await Department.create({
+        const newDepartment = await Department.create({
             nama_department: nama_department
         });
-        res.status(201).json({msg: "Department berhasil dibuat"});
+
+        const responseData = {
+            id_department: newDepartment.id_department,
+            nama_department: newDepartment.nama_department
+        };
+
+        response(201, responseData, "Department berhasil dibuat", res);
     } catch (error) {
         res.status(400).json({msg: error.message});
     }
@@ -89,7 +104,17 @@ export const updateDepartment = async(req, res) =>{
                 id_department: req.params.id
             }
         });
-        res.status(200).json({msg: "Department berhasil diupdate"});
+        const updatedDepartment = await Department.findOne({
+            where: {
+                id_department: req.params.id
+            }
+        });
+
+        const responseData = {
+            id_department: updatedDepartment.id_department,
+            nama_department: updatedDepartment.nama_department
+        };
+        response(200, responseData, "Department berhasil diupdate", res);
     } catch (error) {
         res.status(400).json({msg: error.message});
     }
@@ -121,8 +146,101 @@ export const deleteDepartment = async(req, res) =>{
                 id_department: req.params.id
             }
         });
-        res.status(200).json({msg: "Department berhasil dihapus"});
+
+        const responseData = {
+            id_department: department.id_department,
+            nama_department: department.nama_department
+        };
+
+        response(200, responseData, "Department berhasil dihapus", res);
     } catch (error) {
         res.status(400).json({msg: error.message});
     }
 }
+
+// Add user to department (hanya operator)
+export const addUserToDepartment = async (req, res) => {
+    const { id_department, id_users } = req.body;
+    try {
+        const department = await Department.findOne({
+            where: {
+                id_department: id_department
+            }
+        });
+        if (!department) return response(404, null, "Department tidak ditemukan", res);
+
+        const user = await Users.findOne({
+            where: {
+                id_users: id_users
+            }
+        });
+        if (!user) return response(404, null, "User tidak ditemukan", res);
+
+        if (user.tipe_user === 'operator') {
+            return response(403, null, "Tidak dapat menambahkan operator ke department", res);
+        }
+
+        await Users.update({
+            id_department: id_department
+        }, {
+            where: {
+                id_users: id_users
+            }
+        });
+        
+        const responseData = {
+            id_users: user.id_users,
+            username: user.username,
+            id_department: department.id_department,
+            nama_department: department.nama_department
+        };
+
+        response(200, responseData, "User berhasil ditambahkan ke department", res);
+    } catch (error) {
+        //Can i do this?
+        response(400, null, error.message, res);
+    }
+};
+
+// Remove user from department (hanya operator)
+export const removeUserFromDepartment = async (req, res) => {
+    const { id_department, id_users } = req.body;
+    try {
+        const department = await Department.findOne({
+            where: {
+                id_department: id_department
+            }
+        });
+        if (!department) return response(404, null, "Department tidak ditemukan", res);
+
+        const user = await Users.findOne({
+            where: {
+                id_users: id_users
+            }
+        });
+        if (!user) return response(404, null, "User tidak ditemukan", res);
+
+        if (user.id_department !== id_department) {
+            return response(400, null, "User tidak berada di department ini", res);
+        }
+
+        await Users.update({
+            id_department: null
+        }, {
+            where: {
+                id_users: id_users
+            }
+        });
+        
+        const responseData = {
+            id_users: user.id_users,
+            username: user.username,
+            id_department: department.id_department,
+            nama_department: department.nama_department
+        };
+
+        response(200, responseData, "User berhasil dikeluarkan dari department", res);
+    } catch (error) {
+        response(400, null, error.message, res);
+    }
+};
