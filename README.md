@@ -4,7 +4,7 @@
 ## Paradigma fungsional dalam direktori user-services dapat dilihat dari beberapa aspek berikut:
 
 1. Penggunaan Fungsi Murni:
-Fungsi-fungsi dalam controller seperti getGroups, getGroupsById, createGroup, dll., berusaha untuk tidak memiliki efek samping dan mengembalikan hasil yang sama untuk input yang sama.
+Fungsi-fungsi dalam controller seperti getGroups, getGroupsById, createGroup, dll., berusaha untuk tidak memiliki side effect dan mengembalikan hasil yang sama untuk input yang sama.
 
 2. Immutability:
 Data yang diterima oleh fungsi tidak diubah secara langsung. Sebagai contoh, dalam fungsi createGroup, data yang diterima dari request body digunakan untuk membuat entitas baru tanpa mengubah data asli.
