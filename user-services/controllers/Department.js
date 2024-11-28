@@ -14,7 +14,7 @@ export const getDepartments = async(req, res) =>{
         });
         response(200, departments, "Semua department berhasil diambil", res);
     } catch (error) {
-        res.status(500).json({msg: error.message});
+        response(500, null, error.message, res);
     }
 }
 
@@ -69,7 +69,7 @@ export const createDepartment = async(req, res) =>{
 
         response(201, responseData, "Department berhasil dibuat", res);
     } catch (error) {
-        res.status(400).json({msg: error.message});
+        response(400, null, error.message, res);
     }
 }
 
@@ -80,7 +80,7 @@ export const updateDepartment = async(req, res) =>{
             id_department: req.params.id
         }
     });
-    if(!department) return res.status(404).json({msg: "Department tidak ditemukan"});
+    if(!department) return response(404, null, "Department tidak ditemukan", res);
     
     const {nama_department} = req.body;
     try {
@@ -94,7 +94,7 @@ export const updateDepartment = async(req, res) =>{
             }
         });
         if(existingDepartment) {
-            return res.status(400).json({msg: "Nama department sudah ada"});
+            return response(400, null, "Nama department sudah ada", res);
         }
 
         await Department.update({
@@ -116,7 +116,7 @@ export const updateDepartment = async(req, res) =>{
         };
         response(200, responseData, "Department berhasil diupdate", res);
     } catch (error) {
-        res.status(400).json({msg: error.message});
+        response(400, null, error.message, res);
     }
 }
 
@@ -128,7 +128,7 @@ export const deleteDepartment = async(req, res) =>{
                 id_department: req.params.id
             }
         });
-        if(!department) return res.status(404).json({msg: "Department tidak ditemukan"});
+        if(!department) return response(404, null, "Department tidak ditemukan", res);
 
         // Check if department has users
         const usersInDepartment = await Users.count({
@@ -138,7 +138,7 @@ export const deleteDepartment = async(req, res) =>{
         });
         
         if(usersInDepartment > 0) {
-            return res.status(400).json({msg: "Department masih memiliki user, tidak dapat dihapus"});
+            return response(400, null, "Department memiliki user, tidak dapat dihapus", res);
         }
 
         await Department.destroy({
@@ -154,7 +154,7 @@ export const deleteDepartment = async(req, res) =>{
 
         response(200, responseData, "Department berhasil dihapus", res);
     } catch (error) {
-        res.status(400).json({msg: error.message});
+       response(400, null, error.message, res);
     }
 }
 

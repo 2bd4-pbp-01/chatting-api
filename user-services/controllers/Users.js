@@ -13,7 +13,7 @@ export const getUsers = async(req, res) =>{
         });
         responses(200, response, "Semua data users berhasil diambil", res);
     } catch (error) {
-        res.status(500).json({msg: error.message});
+        responses(500, null, error.message, res);
     }
 }
 
@@ -26,15 +26,15 @@ export const getUserById = async(req, res) =>{
                 id_users: req.params.id
             }
         });
-        if(!response) return res.status(404).json({msg: "User tidak ditemukan"});
+        if(!response) return responses(404, null, "User tidak ditemukan", res);
         
         // Cek apakah user yang dicari adalah operator
         if(response.tipe_user === 'operator') {
-            return res.status(403).json({msg: "Tidak dapat mengakses data operator"});
+            return responses(403, null, "Tidak dapat mengambil data operator", res);
         }
         responses(200, response, "Data user berhasil diambil", res);
     } catch (error) {
-        res.status(500).json({msg: error.message});
+        responses(500, null, error.message, res);
     }
 }
 
@@ -49,7 +49,7 @@ export const createUser = async(req, res) =>{
             where: { email: email }
         });
         if(existingUser) {
-            return res.status(400).json({msg: "Email sudah terdaftar"});
+            return responses(404, null, "Email sudah terdaftar", res);
         }
 
         const hashPassword = await argon2.hash(password);
@@ -70,7 +70,7 @@ export const createUser = async(req, res) =>{
         // res.status(201).json({msg: "Register Berhasil"});
         responses(201, userData, "User telah berhasil dibuat", res);
     } catch (error) {
-        res.status(400).json({msg: error.message});
+        responses(400, null, error.message, res);
     }
 }
 
@@ -82,18 +82,18 @@ export const updateUser = async(req, res) =>{
                 id_users: req.params.id
             }
         });
-        if(!user) return res.status(404).json({msg: "User tidak ditemukan"});
+        if(!user) return responses(404, null, "User tidak ditemukan", res);
 
         // Cek jika user yang akan diupdate adalah operator
         if(user.tipe_user === 'operator') {
-            return res.status(403).json({msg: "Tidak dapat mengubah data operator"});
+            return responses(403, null, "Tidak dapat mengubah data operator", res);
         }
 
         const {username, email, tipe_user} = req.body;
 
         // Validasi tipe_user yang diperbolehkan
         if(tipe_user && !['anggota', 'manager'].includes(tipe_user)) {
-            return res.status(400).json({msg: "Tipe user tidak valid. Hanya bisa set sebagai anggota atau manager"});
+            return responses(400, null, "Tipe user tidak valid", res);
         }
 
          // Update tanpa mengubah password
@@ -122,7 +122,7 @@ export const updateUser = async(req, res) =>{
         };
         responses(200, userData, "User Updated", res);
     } catch (error) {
-        res.status(400).json({msg: error.message});
+        responses(400, null, error.message, res);
     }
 }
 
@@ -134,11 +134,11 @@ export const updatePassword = async(req, res) =>{
                 id_users: req.params.id
             }
         });
-        if(!user) return res.status(404).json({msg: "User tidak ditemukan"});
+        if(!user) responses(404, null, "User tidak ditemukan", res);
 
         // Cek jika user yang akan diupdate adalah operator
         if(user.tipe_user === 'operator') {
-            return res.status(403).json({msg: "Tidak dapat mengubah data operator"});
+            return responses(403, null, "Tidak dapat mengubah password operator", res);
         }
 
         const {password, confPassword} = req.body;
@@ -169,7 +169,7 @@ export const updatePassword = async(req, res) =>{
         };
         responses(200, userData, "Password Updated", res);
     } catch (error) {
-        res.status(400).json({msg: error.message});
+        responses(400, null, error.message, res);
     }
 }
 
@@ -181,11 +181,11 @@ export const deleteUser = async(req, res) =>{
                 id_users: req.params.id
             }
         });
-        if(!user) return res.status(404).json({msg: "User tidak ditemukan"});
+        if(!user) return responses(404, null, "User tidak ditemukan", res);
 
         // Cek jika user yang akan dihapus adalah operator
         if(user.tipe_user === 'operator') {
-            return res.status(403).json({msg: "Tidak dapat menghapus operator"});
+            return responses(403, null, "Tidak dapat menghapus operator", res);
         }
 
         await User.destroy({
@@ -203,7 +203,7 @@ export const deleteUser = async(req, res) =>{
         
         responses(200, userData, "User Deleted", res);
     } catch (error) {
-        res.status(400).json({msg: error.message});
+        responses(400, null, error.message, res);
     }
 }
 
@@ -215,11 +215,11 @@ export const promoteToManager = async(req, res) =>{
                 id_users: req.params.id
             }
         });
-        if(!user) return res.status(404).json({msg: "User tidak ditemukan"});
+        if(!user) return responses(404, null, "User tidak ditemukan", res);
 
         // Hanya bisa promote anggota
         if(user.tipe_user !== 'anggota') {
-            return res.status(400).json({msg: "Hanya anggota yang dapat dipromosikan menjadi manager"});
+            return (responses(400, null, "Hanya anggota yang dapat dipromosikan menjadi manager", res));
         }
 
         await User.update({
@@ -230,9 +230,9 @@ export const promoteToManager = async(req, res) =>{
             }
         });
         
-        res.status(200).json({msg: "User berhasil dipromosikan menjadi manager"});
+       responses(200, user, "Anggota berhasil dipromosikan menjadi manager", res);
     } catch (error) {
-        res.status(400).json({msg: error.message});
+       responses(400, null, error.message, res);
     }
 }
 
@@ -244,11 +244,11 @@ export const demoteToMember = async(req, res) =>{
                 id_users: req.params.id
             }
         });
-        if(!user) return res.status(404).json({msg: "User tidak ditemukan"});
+        if(!user) return responses(404, null, "User tidak ditemukan", res);
 
         // Hanya bisa demote manager
         if(user.tipe_user !== 'manager') {
-            return res.status(400).json({msg: "Hanya manager yang dapat diturunkan menjadi anggota"});
+            return responses(400, null, "Hanya manager yang dapat diturunkan menjadi anggota", res);
         }
 
         await User.update({
@@ -258,8 +258,8 @@ export const demoteToMember = async(req, res) =>{
                 id_users: user.id_users
             }
         });
-        res.status(200).json({msg: "Manager berhasil diturunkan menjadi anggota"});
+        responses(200, user, "Manager berhasil diturunkan menjadi anggota", res);
     } catch (error) {
-        res.status(400).json({msg: error.message});
+        responses(400, null, error.message, res);
     }
 }

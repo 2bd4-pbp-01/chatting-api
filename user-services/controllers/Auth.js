@@ -5,19 +5,27 @@ import { jwtConfig } from "../config/jwt.js";
 import response from "../util/corparesponse.js";    
 
 // Login 
-export const Login = async (req, res) =>{
+export const Login = async (req, res) => {
+    let user; // Definisikan variabel user di luar blok try-catch-finally
     try {
-        const user = await User.findOne({
+        // Validasi input
+        if (!req.body.email || !req.body.password) {
+            return response(400, null, "Email dan password harus diisi", res);
+        }
+
+        // Mencari user berdasarkan email
+        user = await User.findOne({
             where: {
                 email: req.body.email
             }
         });
-        if(!user) return res.status(404).json({msg: "User tidak ditemukan"});
-        
+        if (!user) return response(404, null, "User tidak ditemukan", res);
+
+        // Memverifikasi password yang diberikan
         const match = await argon2.verify(user.password, req.body.password);
-        if(!match) return res.status(400).json({msg: "Password salah"});
-        
-        // Create JWT token
+        if (!match) return response(400, null, "Password salah", res);
+
+        // Membuat token JWT
         const token = jwt.sign({
             id: user.id_users,
             email: user.email,
@@ -25,22 +33,23 @@ export const Login = async (req, res) =>{
         }, jwtConfig.secret, {
             expiresIn: jwtConfig.expiration
         });
+
+        // Menyiapkan data untuk respons
         const data = {
             token: token,
         }
+        // Mengirim respons sukses dengan status 200
         response(200, data, "Login Berhasil", res);
-        // res.status(200).json({
-        //     msg: "Login berhasil",
-        //     token: token,
-        //     user: {
-        //         id: user.id_users,
-        //         username: user.username,
-        //         email: user.email,
-        //         tipe_user: user.tipe_user
-        //     }
-        // });
     } catch (error) {
-        res.status(500).json({msg: error.message});
+        // Menangkap kesalahan dan mengirim respons 500
+        console.error("Error during login:", error);
+        response(500, null, "Terjadi kesalahan pada server", res);
+    } finally {
+        if (user) {
+            console.log(`Login attempt for user: ${user.email}`);
+        } else {
+            console.log("Login attempt failed before user retrieval.");
+        }
     }
 }
 

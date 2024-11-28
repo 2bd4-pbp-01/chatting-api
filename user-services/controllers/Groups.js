@@ -4,13 +4,15 @@ import Users from "../models/UserModel.js";
 import Association from "../models/AssociationModel.js";
 import amqp from "amqplib";
 import sendRabbitMQMessage from "../util/RabbitMQMessage.js";
+import response from "../util/corparesponse.js";
+
 
 export const getGroups = async (_req, res) => {
   try {
     const groups = await Groups.findAll();
-    res.status(200).json({ data: groups });
+    response(200, groups, "Semua grup berhasil diambil", res);
   } catch (error) {
-    res.status(500).json({ msg: error.message });
+    response(500, null, error.message, res);
   }
 };
 
@@ -34,10 +36,10 @@ export const getGroupsById = async (req, res) => {
     });
 
     group
-      ? res.status(200).json(group)
-      : res.status(404).json({ msg: `Group ${id || name} not found.` });
+      ? response(200, group, "Data grup berhasil diambil", res)
+      : response(404, null, "Grup tidak ditemukan", res);
   } catch (error) {
-    res.status(500).json({ msg: error.message });
+    response(500, null, error.message, res);
   }
 };
 
